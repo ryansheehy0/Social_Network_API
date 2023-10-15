@@ -15,6 +15,8 @@ POST /api/users/:userId/friends/:friendId
 DELETE /api/users/:userId/friends/:friendId
 */
 
-router.
+router.get("/", (req, res) => {
+  
+})
 
 module.exports = router
