@@ -14,8 +14,14 @@ const user = new mongoose.Schema({
     unique: true,
     validate: {validator: isEmail, message: "Invalid email address"}
   },
-  thoughts: [],
-  friends: []
+  thoughts: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Thought"
+  }],
+  friends: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User"
+  }]
 })
 
 user.virtual("friendCount").get(() => {
