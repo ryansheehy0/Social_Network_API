@@ -1,5 +1,5 @@
 const mongoose = require("mongoose")
-const reaction = require("./reaction")
+const reactionSchema = require("./reaction")
 
 const thought = new mongoose.Schema({
   thoughtText: {
@@ -19,10 +19,25 @@ const thought = new mongoose.Schema({
     type: String,
     required: true
   },
-  reactions: [reaction]
+  reactions: [reactionSchema]
 })
 
-thought.methods
+thought.methods.pushReaction = function(reaction){
+  this.reactions.push(reaction)
+  return this
+}
+
+thought.methods.removeReaction = function(reactionId){
+  let deletedReaction
+  this.reactions = this.reactions.filter((currentReaction) => {
+    if(currentReaction.reactionId === reactionId){
+      deletedReaction = currentReaction
+      return false
+    }
+    return true
+  })
+  return deletedReaction
+}
 
 thought.virtual("reactionCount").get(() => {
   return this.reactions.length

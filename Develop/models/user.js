@@ -30,8 +30,8 @@ user.methods.pushFriend = function(friendId){
 }
 
 user.methods.removeFriend = function(friendId){
-  this.friends = this.friends.filter((id) => {
-    return id !== friendId
+  this.friends = this.friends.filter((currentFriendId) => {
+    return currentFriendId !== friendId
   })
   return this
 }

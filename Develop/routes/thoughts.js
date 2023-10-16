@@ -1,13 +1,5 @@
 const router = require("express").Router()
-const { Thought, User } = require("../models/index")
-
-/*
-DELETE /api/thoughts/:id
-
-POST /api/thoughts/:thoughtId/reactions
-  -
-DELETE /api/thoughts/:thoughtId/reactions
-*/
+const { Thought, User, Reaction } = require("../models/index")
 
 // Get all thoughts
 router.get("/", async (req, res) => {
@@ -63,6 +55,55 @@ router.put("/:id", async (req, res) => {
     res.status(500).json({message: error})
   }
 })
+
+// Delete thought
+router.delete("/:id", async (req, res) => {
+  try{
+    const filter = { _id: new ObjectId(req.params.id) }
+    const deletedThought = await Thought.findOneAndDelete(filter).exec()
+    // Send the deleted thought
+    res.status(200).json(deletedThought)
+  }catch(error){
+    console.error(error)
+    res.status(500).json({message: error})
+  }
+})
+
+// Create new reaction
+router.post("/:thoughtId/reactions", async (req, res) => {
+  try{
+    // Create reaction
+    const reaction = new Reaction({
+      reactionBody: req.body.reactionBody,
+      username: req.body.username
+    })
+    // Get thought
+    const thought = await Thought.findById(req.params.thoughtId)
+    // Add reaction to thought
+    const updatedThought = thought.pushReaction(reaction)
+    // Send updated thought
+    res.status(200).json(updatedThought)
+  }catch(error){
+    console.error(error)
+    res.status(500).json({message: error})
+  }
+})
+
+// Delete reaction
+router.delete("/:thoughtId/reactions", async (req, res) => {
+  try{
+    // Get thought
+    const thought = await Thought.findById(req.params.thoughtId)
+    // Remove reaction from thought
+    const deletedReaction = thought.removeReaction(req.body.reactionId)
+    // Send deleted reaction
+    res.status(200).json(deletedReaction)
+  }catch(error){
+    console.error(error)
+    res.status(500).json({message: error})
+  }
+})
+
 
 
 module.exports = router
