@@ -1,11 +1,6 @@
 const router = require("express").Router()
 const { ObjectId } = require("mongoose")
-const { User, Thoughts, Thought } = require("../models/index")
-
-/*
-POST /api/users/:userId/friends/:friendId
-DELETE /api/users/:userId/friends/:friendId
-*/
+const { User, Thought } = require("../models/index")
 
 // Get all users
 router.get("/", async (req, res) => {
@@ -80,15 +75,31 @@ router.delete("/:id", async (req, res) => {
 // Add new friend to user
 router.post("/:userId/friends/:friendId", async (req, res) => {
   try{
-    // Find friend
-    const friend = await User.findById(req.params.friendId).exec()
+    // Find user
+    const user = await User.findById(req.params.userId).exec()
     // Add friend to user's friends array
-    const filter = { _id: new ObjectId()}
+    const updatedUser = user.pushFriend(req.params.friendId)
+    // Send updated user
+    res.status(200).json(updatedUser)
   }catch(error){
     console.error(error)
     res.status(500).json({message: error})
   }
 })
 
+// Delete friend from user
+router.delete("/:userId/friends/:friendId", async (req, res) => {
+  try{
+    // Find user
+    const user = await User.findById(req.params.userId).exec()
+    // Remove friend from user's friends array
+    const updatedUser = user.removeFriend(req.params.friendId)
+    // Send updated user
+    res.status(200).json(updatedUser)
+  }catch(error){
+    console.error(error)
+    res.status(500).json({message: error})
+  }
+})
 
 module.exports = router

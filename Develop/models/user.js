@@ -24,6 +24,18 @@ const user = new mongoose.Schema({
   }]
 })
 
+user.methods.pushFriend = function(friendId){
+  this.friends.push(friendId)
+  return this
+}
+
+user.methods.removeFriend = function(friendId){
+  this.friends = this.friends.filter((id) => {
+    return id !== friendId
+  })
+  return this
+}
+
 user.virtual("friendCount").get(() => {
   return this.friends.length
 })

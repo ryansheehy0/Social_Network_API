@@ -22,6 +22,8 @@ const thought = new mongoose.Schema({
   reactions: [reaction]
 })
 
+thought.methods
+
 thought.virtual("reactionCount").get(() => {
   return this.reactions.length
 })
