@@ -41,7 +41,6 @@ thought.methods.removeReaction = async function(reactionId){
   this.reactions = this.reactions.filter((currentReaction) => {
     if(currentReaction.reactionId.equals(reactionId)){
       deletedReaction = currentReaction
-      console.log(deletedReaction)
       return false
     }
     return true
