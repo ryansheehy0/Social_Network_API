@@ -3,7 +3,7 @@ const mongoose = require("mongoose")
 const reaction = new mongoose.Schema({
   reactionId: {
     type: mongoose.Schema.Types.ObjectId,
-    default: mongoose.Schema.Types.ObjectId
+    default: new mongoose.Types.ObjectId()
   },
   reactionBody: {
     type: String,
@@ -22,6 +22,8 @@ const reaction = new mongoose.Schema({
       return new Date(this.createdAt).toLocaleString("en-US", options)
     }
   }
+},{
+  _id: false
 })
 
 module.exports = reaction

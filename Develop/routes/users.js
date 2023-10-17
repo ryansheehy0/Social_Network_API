@@ -1,5 +1,5 @@
 const router = require("express").Router()
-const { ObjectId } = require("mongoose")
+const mongoose = require("mongoose")
 const { User, Thought } = require("../models/index")
 
 // Get all users
@@ -41,9 +41,9 @@ router.post("/", async (req, res) => {
 // Update user
 router.put("/:id", async (req, res) => {
   try{
-    const filter = { _id: new ObjectId(req.params.id) }
+    const filter = { _id: new mongoose.Types.ObjectId(req.params.id) }
     const update = { username: req.body.username }
-    const user = await User.findOneAndUpdate(filter, update)
+    const user = await User.findOneAndUpdate(filter, update, { new: true })
     res.status(200).json(user)
   }catch(error){
     console.error(error)
@@ -55,13 +55,14 @@ router.put("/:id", async (req, res) => {
 router.delete("/:id", async (req, res) => {
   try{
     // Get the user's thoughts
-    const thoughts = await User.findById(req.params.id).thoughts.exec()
+    const user = await User.findById(req.params.id).exec()
+    const thoughts = [...user.thoughts]
     // Delete the user
-    const filter = { _id: new ObjectId(req.params.id) }
+    const filter = { _id: new mongoose.Types.ObjectId(req.params.id) }
     const deletedUser = await User.findOneAndDelete(filter).exec()
     // Delete each of the user's thoughts only after the user is deleted
     thoughts.forEach(async thoughtId => {
-      const filter = { _id: new Objectid(thoughtId) }
+      const filter = { _id: new mongoose.Types.ObjectId(thoughtId) }
       await Thought.deleteOne(filter).exec()
     })
     // Send the deleted user
@@ -78,7 +79,7 @@ router.post("/:userId/friends/:friendId", async (req, res) => {
     // Find user
     const user = await User.findById(req.params.userId).exec()
     // Add friend to user's friends array
-    const updatedUser = user.pushFriend(req.params.friendId)
+    const updatedUser = await user.pushFriend(req.params.friendId)
     // Send updated user
     res.status(200).json(updatedUser)
   }catch(error){
@@ -93,7 +94,7 @@ router.delete("/:userId/friends/:friendId", async (req, res) => {
     // Find user
     const user = await User.findById(req.params.userId).exec()
     // Remove friend from user's friends array
-    const updatedUser = user.removeFriend(req.params.friendId)
+    const updatedUser = await user.removeFriend(req.params.friendId)
     // Send updated user
     res.status(200).json(updatedUser)
   }catch(error){

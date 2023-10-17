@@ -20,27 +20,34 @@ const thought = new mongoose.Schema({
     required: true
   },
   reactions: [reactionSchema]
+},{
+  toJSON: {
+    virtuals: true
+  }
 })
 
-thought.methods.pushReaction = function(reaction){
+thought.virtual("reactionCount").get(function(){
+  return this.reactions.length
+})
+
+thought.methods.pushReaction = async function(reaction){
   this.reactions.push(reaction)
+  await this.save()
   return this
 }
 
-thought.methods.removeReaction = function(reactionId){
+thought.methods.removeReaction = async function(reactionId){
   let deletedReaction
   this.reactions = this.reactions.filter((currentReaction) => {
-    if(currentReaction.reactionId === reactionId){
+    if(currentReaction.reactionId.equals(reactionId)){
       deletedReaction = currentReaction
+      console.log(deletedReaction)
       return false
     }
     return true
   })
+  await this.save()
   return deletedReaction
 }
-
-thought.virtual("reactionCount").get(() => {
-  return this.reactions.length
-})
 
 module.exports = mongoose.model("Thought", thought)

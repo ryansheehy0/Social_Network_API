@@ -1,4 +1,5 @@
 const router = require("express").Router()
+const mongoose = require("mongoose")
 const { Thought, User, Reaction } = require("../models/index")
 
 // Get all thoughts
@@ -33,8 +34,8 @@ router.post("/", async (req, res) => {
     })
     // Get user
     const user = await User.findById(req.body.userId).exec()
-    // Add though's id to the user's friends
-    user.pushFriend(thought._id)
+    // Add though's id to the user's thoughts
+    await user.pushThought(thought._id)
     // Send new thought
     res.status(200).json(thought)
   }catch(error){
@@ -46,9 +47,9 @@ router.post("/", async (req, res) => {
 // Update thought
 router.put("/:id", async (req, res) => {
   try{
-    const filter = { _id: new ObjectId(req.params.id) }
+    const filter = { _id: new mongoose.Types.ObjectId(req.params.id) }
     const update = { thoughtText: req.body.thoughtText }
-    const thought = await Thought.findOneAndUpdate(filter, update)
+    const thought = await Thought.findOneAndUpdate(filter, update, { new: true })
     res.status(200).json(thought)
   }catch(error){
     console.error(error)
@@ -59,8 +60,16 @@ router.put("/:id", async (req, res) => {
 // Delete thought
 router.delete("/:id", async (req, res) => {
   try{
-    const filter = { _id: new ObjectId(req.params.id) }
-    const deletedThought = await Thought.findOneAndDelete(filter).exec()
+    // Find thought
+    const thought = await Thought.findById(req.params.id)
+    // Find user
+    const username = thought.username
+    const user = await User.findOne({ username }).exec()
+    // Delete thought
+    const filter = { _id: new mongoose.Types.ObjectId(req.params.id) }
+    const deletedThought = await Thought.findOneAndDelete(filter, { new: true }).exec()
+    // Remove thought from user
+    await user.removeThought(thought._id)
     // Send the deleted thought
     res.status(200).json(deletedThought)
   }catch(error){
@@ -80,7 +89,7 @@ router.post("/:thoughtId/reactions", async (req, res) => {
     // Get thought
     const thought = await Thought.findById(req.params.thoughtId)
     // Add reaction to thought
-    const updatedThought = thought.pushReaction(reaction)
+    const updatedThought = await thought.pushReaction(reaction)
     // Send updated thought
     res.status(200).json(updatedThought)
   }catch(error){
@@ -95,7 +104,7 @@ router.delete("/:thoughtId/reactions", async (req, res) => {
     // Get thought
     const thought = await Thought.findById(req.params.thoughtId)
     // Remove reaction from thought
-    const deletedReaction = thought.removeReaction(req.body.reactionId)
+    const deletedReaction = await thought.removeReaction(req.body.reactionId)
     // Send deleted reaction
     res.status(200).json(deletedReaction)
   }catch(error){
@@ -103,7 +112,5 @@ router.delete("/:thoughtId/reactions", async (req, res) => {
     res.status(500).json({message: error})
   }
 })
-
-
 
 module.exports = router
